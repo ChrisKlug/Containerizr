@@ -1,10 +1,5 @@
 ﻿using Containerizr.AspNet;
 using Containerizr.Linux;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Containerizr.Samples.Samples;
 
