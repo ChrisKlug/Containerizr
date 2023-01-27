@@ -2,9 +2,22 @@
 
 This repo contains a PoC for building Docker images using C#. 
 
-## How to work with it?
+## Basics
 
-The easiest way is to have a look at the Containerizr.Samples project. It has some samples that you can look at.
+To create an image, you create an instance of an ContainerImage subclass. And since it implements IDisposable, it is hightly recommended to using `using`.
+
+```csharp
+using (var image = DebianContainerImage.Create(DotNetCoreImageVersions.SDK_7_0))
+  await image.SetEntryPoint("dotnet run");
+  await image.CreateImage("my_img", "lates");
+}
+```
+
+The constructor also accepts a boolean that defines whether or not you want to run in "interactive mode". In this mode, each command that is run will be interactively run in a temporary container on your machine. This allows you to step-by-step debug the the set-up during development. 
+
+__Note:__ The code defaults to interactive mode when building in debug mode
+
+The easiest way to understand how it works, is to have a look at the Containerizr.Samples project.
 
 ## Known issues
 
