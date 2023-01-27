@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Containerizr.AspNet\Containerizr.AspNet.csproj" />
+		<ProjectReference Include="..\Containerizr\Containerizr.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(SolutionDir)\Containerizr.Samples\Resources\**" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Resources\DemoApi\Program.cs" />
+	</ItemGroup>
+
+</Project>
