@@ -1,33 +1,30 @@
 ﻿using System.Text;
-using System.Xml.Linq;
 
 namespace Containerizr;
 
 public class DockerfileContext
 {
     private StringBuilder content;
+    private readonly ContainerImage image;
 
-    private DockerfileContext(string baseImage, string workingDirectory, string contextDirectory)
+    private DockerfileContext(ContainerImage image)
     {
-        content = new StringBuilder($"FROM {baseImage}\r\n\r\n");
-        WorkingDirectory = workingDirectory;
-        ContextDirectory = contextDirectory;
+        this.image = image;
+        content = new StringBuilder($"FROM {image.BaseImage}\r\n\r\n");
     }
-    private DockerfileContext(string baseImage, string workingDirectory, string contextDirectory, string name)
+    private DockerfileContext(ContainerImage image, string name)
     {
-        content = new StringBuilder($"FROM {baseImage} AS {name}\r\n\r\n");
-        WorkingDirectory = workingDirectory;
-        ContextDirectory = contextDirectory;
-        RootRelativePath = "./" + Path.GetFileName(contextDirectory); // Weird, but gets directory name as well
+        this.image = image;
+        content = new StringBuilder($"FROM {image.BaseImage} AS {name}\r\n\r\n");
     }
 
     public async Task AddMultiStageImage(ContainerImage image, string fromName)
     {
-        var resp = await image.GenerateMultiStageDockerContext(ContextDirectory, fromName);
+        var resp = await this.image.GenerateMultiStageDockerContext(image, fromName);
 
         if (!resp.IsSuccess)
         {
-            throw new Exception(resp.Exception.GetBaseException().Message);
+            throw new Exception(resp.Exception!.GetBaseException().Message);
         }
 
         this.content = new StringBuilder($"{resp.Content}\r\n\r\n{content}");
@@ -38,15 +35,20 @@ public class DockerfileContext
         this.content.AppendLine(content);
     }
 
-    public static DockerfileContext Create(string baseImage, string workingDirectory, string contextDirectory)
-        => new DockerfileContext(baseImage, workingDirectory, contextDirectory);
-    public static DockerfileContext CreateForMultiStageImage(string baseImage, string workingDirectory, string contextDirectory, string name)
-        => new DockerfileContext(baseImage, workingDirectory, contextDirectory, name);
+    public static DockerfileContext Create(ContainerImage image) => new DockerfileContext(image);
+    public static DockerfileContext CreateForMultiStageImage(ContainerImage image, string name) => new DockerfileContext(image, name);
 
 
     public string GetContent() => content.ToString();
 
-    public string ContextDirectory { get; }
-    public string WorkingDirectory { get; set; }
-    public string RootRelativePath { get; private set; } = ".";
+    public string WorkingDirectory 
+    {
+        get => image.State.GetWorkingDirectory();
+        set
+        {
+            image.State.SetItem("BuiltIn.WorkingDirectory", value);
+        }
+    }
+    public string ContextDirectoryPath => image.State.GetContextDirectory();
+    public string RootRelativePath => image.State.GetItem<string>("BuiltIn.RootRelativeContextPath") ?? "";
 }

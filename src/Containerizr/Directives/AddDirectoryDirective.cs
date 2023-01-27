@@ -45,7 +45,7 @@ public class AddDirectoryDirective : DockerDirective
         {
             container = Guid.NewGuid().ToString();
         }
-        var dirPath = Path.Combine(context.ContextDirectory, container);
+        var dirPath = Path.Combine(context.ContextDirectoryPath, container);
         Directory.CreateDirectory(dirPath);
 
         CopyFilesRecursively(directory, dirPath);

@@ -3,18 +3,19 @@ using System.Diagnostics;
 
 namespace Containerizr;
 
-public class ContainerImage : IDisposable, IHaveWorkingDir
+public class ContainerImage : IDisposable
 {
     private readonly ContainerImageConfig config;
     private readonly List<DockerDirective> directives = new List<DockerDirective>();
-    private string workingDir;
     private bool disposedValue;
     private Process? interactiveContainer;
 
     protected ContainerImage(ContainerImageConfig config, string workingDir)
 	{
         this.config = config;
-        this.workingDir = workingDir;
+        
+        State = new ContainerImageState();
+        State.SetItem("BuiltIn.WorkingDir", workingDir);
     }
 
     public async Task<DockerDirectiveResponse> AddDirective(DockerDirective directive)
@@ -27,25 +28,19 @@ public class ContainerImage : IDisposable, IHaveWorkingDir
 
         await EnsureInteractiveContainerIsRunning();
 
-        return await directive.ExecuteInteractive(ExecutionContext.Create(config, workingDir));
+        return await directive.ExecuteInteractive(ExecutionContext.Create(config, State.GetWorkingDirectory()));
     }
-    public async Task<DockerfileContentGenerationResponse> GetDockerFileContent(string? tempDirectoryPath = null)
+    public async Task<DockerfileContentGenerationResponse> CreateDockerContext(string? tempDirectoryPath = null, bool doNotDelete = false)
     {
         var dir = Path.Combine(tempDirectoryPath ?? Path.Combine(Path.GetTempPath(), $"{config.ContainerName}_context"));
         Directory.CreateDirectory(dir);
 
-        var response = await CreateDockerContext(dir);
+        State.SetItem("BuiltIn.RootContextDir", dir);
+        State.SetItem("BuiltIn.ContextDir", dir);
+        State.SetItem("BuiltIn.RootRelativeContextPath", "");
 
-        Directory.Delete(dir, true);
-
-        return response;
-    }
-    public async Task<DockerfileContentGenerationResponse> GenerateMultiStageDockerContext(string contextDirectory, string imageName)
-    {
-        var dir = Path.Combine(contextDirectory, "_" + imageName);
-        Directory.CreateDirectory(dir);
-
-        var ctx = DockerfileContext.CreateForMultiStageImage(config.BaseImage, workingDir, dir, imageName);
+        var ctx = DockerfileContext.Create(this);
+        string content;
         try
         {
             foreach (var directive in directives)
@@ -53,9 +48,42 @@ public class ContainerImage : IDisposable, IHaveWorkingDir
                 await directive.GenerateDockerFileContent(ctx);
             }
 
+            content = ctx.GetContent();
+
+            File.WriteAllText(Path.Combine(dir, "dockerfile"), content);
+        }
+        catch (Exception ex)
+        {
+            return DockerfileContentGenerationResponse.Create(ex);
+        }
+
+        if (!doNotDelete)
+            Directory.Delete(dir, true);
+
+        return DockerfileContentGenerationResponse.Success(content);
+    }
+    public async Task<DockerfileContentGenerationResponse> GenerateMultiStageDockerContext(ContainerImage image, string imageName)
+    {
+        var rootContextDir = State.GetItem<string>("BuiltIn.RootContextDir")!;
+        var contentDir = $"_{imageName}";
+        var dir = Path.Combine(Path.Combine(rootContextDir, contentDir));
+        Directory.CreateDirectory(dir);
+
+        image.State.SetItem("BuiltIn.RootContextDir", rootContextDir);
+        image.State.SetItem("BuiltIn.ContextDir", dir);
+        image.State.SetItem("BuiltIn.RootRelativeContextPath", contentDir);
+
+        var ctx = DockerfileContext.CreateForMultiStageImage(image, imageName);
+        try
+        {
+            foreach (var directive in image.directives)
+            {
+                await directive.GenerateDockerFileContent(ctx);
+            }
+
             var content = ctx.GetContent();
 
-            return DockerfileContentGenerationResponse.Create(content);
+            return DockerfileContentGenerationResponse.Success(content);
         }
         catch (Exception ex)
         {
@@ -134,34 +162,9 @@ public class ContainerImage : IDisposable, IHaveWorkingDir
         }
     }
 
-    private async Task<DockerfileContentGenerationResponse> CreateDockerContext(string contextPath)
-    {
-        var ctx = DockerfileContext.Create(config.BaseImage, workingDir, contextPath);
-        try
-        {
-            foreach (var directive in directives)
-            {
-                await directive.GenerateDockerFileContent(ctx);
-            }
-
-            var content = ctx.GetContent();
-
-            File.WriteAllText(Path.Combine(contextPath, "dockerfile"), content);
-
-            return DockerfileContentGenerationResponse.Create(content);
-        }
-        catch (Exception ex)
-        {
-            return DockerfileContentGenerationResponse.Create(ex);
-        }
-    }
-
-    string IHaveWorkingDir.WorkingDir
-    {
-        get => workingDir;
-        set => workingDir = value;
-    }
     public string ContainerName => config.ContainerName;
+    public string BaseImage => config.BaseImage;
+    public ContainerImageState State { get; private set; }
 
     #region IDisposable
     protected virtual void Dispose(bool disposing)

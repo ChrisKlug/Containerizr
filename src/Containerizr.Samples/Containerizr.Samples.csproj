@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="$(SolutionDir)\Containerizr.Samples\Resources\**" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(SolutionDir)\src\Containerizr.Samples\Resources\**" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

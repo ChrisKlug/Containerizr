@@ -11,7 +11,7 @@ public static class ContainerImageExtensions
         {
             return false;
         }
-        ((IHaveWorkingDir)image).WorkingDir = dir;
+        image.State.SetItem("BuiltIn.WorkingDir", dir);
         return true;
     }
     public static Task SetEntryPoint(this ContainerImage image, string entrypoint)

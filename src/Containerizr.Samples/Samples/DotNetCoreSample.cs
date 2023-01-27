@@ -15,7 +15,11 @@ internal class DotNetCoreSample : ISample
 
         Console.WriteLine("Generating image");
 
-        DockerfileContentGenerationResponse dockerfile;
+        var contextDir = Path.Combine(Path.GetTempPath(), "sample1");
+        if (Directory.Exists(contextDir))
+        {
+            Directory.Delete(contextDir, true);
+        }
 
         using (var image = DebianContainerImage.Create(DotNetCoreImageVersions.SDK_7_0, interactive: interactive))
         {
@@ -29,12 +33,12 @@ internal class DotNetCoreSample : ISample
 
             await image.SetEntryPoint("dotnet run");
 
-            dockerfile = await image.GetDockerFileContent();
+            var contextGenerationResult = await image.CreateDockerContext(contextDir, true);
 
-            if (!dockerfile.IsSuccess)
+            if (!contextGenerationResult.IsSuccess)
             {
                 Console.Clear();
-                Console.Write("Error: " + dockerfile.Exception!.GetBaseException().Message + "\r\n\r\n");
+                Console.Write("Error: " + contextGenerationResult.Exception!.GetBaseException().Message + "\r\n\r\n");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
                 return;
@@ -42,7 +46,8 @@ internal class DotNetCoreSample : ISample
 
             Console.Clear();
             Console.WriteLine("DOCKERFILE\r\n");
-            Console.Write(dockerfile.Content + "\r\n\r\n");
+            Console.Write(File.ReadAllText(Path.Combine(contextDir, "dockerfile")) + "\r\n\r\n");
+            Console.Write($"Context is temporarily available at: {contextDir}\r\n\r\n");
             Console.Write("Generate image (Y/n): ");
             var key = Console.ReadKey();
 
@@ -57,6 +62,8 @@ internal class DotNetCoreSample : ISample
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
             }
+
+            Directory.Delete(contextDir, true);
         }
     }
 
