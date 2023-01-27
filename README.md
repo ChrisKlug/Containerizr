@@ -23,7 +23,7 @@ The easiest way to understand how it works, is to have a look at the Containeriz
 
 This is a ___very___ early version that is just here to get feedback. There is a _lot_ still to be done!
 
-The current samples work, but other than that, I guarantee nothing!
+The current samples work, but other than that, I guarantee nothing! And there is almost no error handling as it is a PoC...
 
 There is also some weirdness in the code to enable outputting the generated Dockerfile content in the samples that I would like to remove. But for now, it is there as it gives decent output in the console.
 
