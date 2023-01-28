@@ -16,8 +16,8 @@ internal class MultiStageBuildSample : ISample
             Directory.Delete(contextDir, true);
         }
 
-        using (var build = DebianContainerImage.Create(DotNetCoreImageVersions.SDK_7_0, interactive: interactive))
-        using (var image = DebianContainerImage.Create(DotNetCoreImageVersions.AspNet_Runtime_7_0, interactive: interactive))
+        using (var build = LinuxContainerImage.Create(DotNetCoreImageVersions.SDK_7_0, interactive: interactive))
+        using (var image = LinuxContainerImage.Create(DotNetCoreImageVersions.AspNet_Runtime_7_0, interactive: interactive))
         {
             await build.EnsureDirectoryExists("/DemoApi");
 

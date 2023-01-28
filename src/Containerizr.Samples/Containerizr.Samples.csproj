@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Containerizr.AspNet\Containerizr.AspNet.csproj" />
 		<ProjectReference Include="..\Containerizr.AspNet\Containerizr.AspNet.csproj" />
+		<ProjectReference Include="..\Containerizr.Packages\Containerizr.Packages.csproj" />
 		<ProjectReference Include="..\Containerizr\Containerizr.csproj" />
 	</ItemGroup>
 

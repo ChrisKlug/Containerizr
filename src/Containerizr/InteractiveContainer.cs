@@ -7,7 +7,7 @@ public class InteractiveContainer : IDisposable
 {
     private readonly ContainerImage image;
     private readonly string containerName;
-    private readonly Func<(string WorkingDirectory, string Command), string> commandFomatter;
+    private readonly Func<(string Command, string WorkingDirectory), string> commandFomatter;
     private Process? interactiveContainer;
     private ExecutionContext context;
     private bool isDisposed;
@@ -15,7 +15,7 @@ public class InteractiveContainer : IDisposable
     public InteractiveContainer(ContainerImage image, 
                                 string containerName, 
                                 string initialWorkingDirectory, 
-                                Func<(string WorkingDirectory, string Command), string> commandFomatter,
+                                Func<(string Command, string WorkingDirectory), string> commandFomatter,
                                 bool enabled)
     {
         this.image = image;
@@ -27,7 +27,7 @@ public class InteractiveContainer : IDisposable
 
     protected internal Task<CommandExecutionResponse> ExecuteCommand(string command)
     {
-        return ExecuteDockerCommand($"exec {containerName} {commandFomatter((Context.WorkingDirectory, command))}");
+        return ExecuteDockerCommand($"exec {containerName} {commandFomatter((command, Context.WorkingDirectory))}");
     }
     protected internal async Task<CommandExecutionResponse> ExecuteDockerCommand(string command)
     {

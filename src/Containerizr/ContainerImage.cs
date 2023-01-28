@@ -110,8 +110,8 @@ public abstract class ContainerImage : IDisposable
     }
 
     protected internal abstract string FormatCommand(string command, string currentDirectory);
-    private Func<(string WorkingDirectory, string Command), string> GetCommandFormatter()
-        => x => FormatCommand(x.WorkingDirectory, x.WorkingDirectory);
+    private Func<(string Command, string WorkingDirectory), string> GetCommandFormatter()
+        => x => FormatCommand(x.Command, x.WorkingDirectory);
 
     public ContainerImageItems Items { get; private set; }
     public string BaseImage { get; }

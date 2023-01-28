@@ -1,14 +1,13 @@
-﻿using Containerizr;
-using Containerizr.Linux;
-using Containerizr.Samples;
+﻿using Containerizr.Samples;
 using Containerizr.Samples.Samples;
-using System.Runtime.CompilerServices;
 
 var samples = new Dictionary<string, ISample>
 {
     { "1", new DotNetCoreSample() },
     { "2", new MultiStageBuildSample() },
-    { "3", new DotNetCoreExtensionSample() }
+    { "3", new DotNetCoreExtensionSample() },
+    { "4", new UbuntuPackageInstallSample() },
+    { "5", new CentOSPackageInstallSample() }
 };
 
 string input;

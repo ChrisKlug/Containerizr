@@ -1,8 +1,9 @@
 ﻿using Containerizr.Linux;
+using Containerizr.Packages;
 
 namespace Containerizr.Samples.Samples;
 
-internal class DotNetCoreSample : ISample
+internal class UbuntuPackageInstallSample : ISample
 {
     public async Task Execute(bool interactive)
     {
@@ -10,23 +11,17 @@ internal class DotNetCoreSample : ISample
 
         Console.WriteLine("Generating image");
 
-        var contextDir = Path.Combine(Path.GetTempPath(), "sample1");
+        var contextDir = Path.Combine(Path.GetTempPath(), "sample4");
         if (Directory.Exists(contextDir))
         {
             Directory.Delete(contextDir, true);
         }
 
-        using (var image = LinuxContainerImage.Create(DotNetCoreImageVersions.SDK_7_0, interactive: interactive))
+        using (var image = LinuxContainerImage.Create(UbuntuVersion.Jammy_22_04, interactive: interactive))
         {
-            await image.EnsureDirectoryExists("/DemoApi");
+            await image.AddPackage("iproute2");
 
-            await image.AddDirectory("./Resources/DemoApi", "/DemoApi", "DemoApi");
-
-            await image.SetWorkingDirectory("/DemoApi");
-
-            await image.SetEnvironmentVariable("DOTNET_URLS", "http://+:5000");
-
-            await image.SetEntryPoint("dotnet run");
+            await image.SetEntryPoint("ip address show");
 
             var contextGenerationResult = await image.CreateDockerContext(contextDir);
 
@@ -50,11 +45,11 @@ internal class DotNetCoreSample : ISample
             if (key.Key == ConsoleKey.Y || key.Key == ConsoleKey.Enter)
             {
                 Console.Clear();
-                Console.WriteLine("Generating image \"containerizr:sample1\"...");
+                Console.WriteLine("Generating image \"containerizr:sample4\"...");
 
-                await image.CreateImage("containerizr", "sample1");
+                await image.CreateImage("containerizr", "sample4");
 
-                Console.WriteLine("Done!\r\n\r\nRun container by running: docker run -p 8080:5000 containerizr:sample1\r\n");
+                Console.WriteLine("Done!\r\n\r\nRun container by running: docker run containerizr:sample4\r\n");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
             }
@@ -68,5 +63,5 @@ internal class DotNetCoreSample : ISample
         Directory.Delete(contextDir, true);
     }
 
-    public string Name => "DotNet Core SDK Image";
+    public string Name => "Ubuntu Package Installation";
 }

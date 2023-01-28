@@ -4,31 +4,9 @@ public class DebianContainerImage : LinuxContainerImage
 {
     private const string DefaultWorkingDir = "/";
 
-    private static readonly Dictionary<UbuntuVersion, string> UbuntuVersionTag = new Dictionary<UbuntuVersion, string>
-    {
-        { UbuntuVersion.Xenial_16_04, "xenial" },
-        { UbuntuVersion.Bionic_18_04, "bionic" },
-        { UbuntuVersion.Focal_20_04, "focal" },
-        { UbuntuVersion.Jammy_22_04, "jammy" },
-        { UbuntuVersion.Kinetic_22_10, "kinetic" },
-        { UbuntuVersion.Lunar_23_04, "lunar" },
-    };
-
-    private static readonly Dictionary<DotNetCoreImageVersions, string> DotNetCoreImageNames = new Dictionary<DotNetCoreImageVersions, string>
-    {
-        { DotNetCoreImageVersions.SDK_6_0, "mcr.microsoft.com/dotnet/sdk:6.0" },
-        { DotNetCoreImageVersions.SDK_7_0, "mcr.microsoft.com/dotnet/sdk:7.0" },
-        { DotNetCoreImageVersions.AspNet_Runtime_6_0, "mcr.microsoft.com/dotnet/aspnet:6.0" },
-        { DotNetCoreImageVersions.AspNet_Runtime_7_0, "mcr.microsoft.com/dotnet/aspnet:7.0" }
-    };
-
     protected DebianContainerImage(string baseImage, string workingDir, bool? isInteractive = null) 
         : base(baseImage, workingDir, isInteractive) {}
 
     public static DebianContainerImage FromImage(string imageName, string workingDir = DefaultWorkingDir, bool? interactive = null, string? tag = null)
         => new DebianContainerImage($"{imageName}{(tag != null ? $":{tag}" : "")}", workingDir, interactive);
-    public static DebianContainerImage Create(UbuntuVersion version, string workingDir = DefaultWorkingDir, bool? interactive = null)
-        => new DebianContainerImage($"ubuntu:{UbuntuVersionTag[version]}", workingDir, interactive);
-    public static DebianContainerImage Create(DotNetCoreImageVersions version, string workingDir = DefaultWorkingDir, bool? interactive = null)
-        => new DebianContainerImage(DotNetCoreImageNames[version], workingDir, interactive);
 }
