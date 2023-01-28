@@ -23,7 +23,6 @@ public class SetWorkingDirDirective : DockerDirective
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {
         context.AddDirective($"WORKDIR {dir}");
-        context.WorkingDirectory = dir;
 
         return Task.CompletedTask;
     }

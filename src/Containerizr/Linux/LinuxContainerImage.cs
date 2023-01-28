@@ -2,8 +2,8 @@
 {
     public abstract class LinuxContainerImage : ContainerImage
     {
-        protected LinuxContainerImage(string baseImage, string workingDir, bool? isInteractive = null) 
-            : base(baseImage, workingDir, isInteractive)
+        protected LinuxContainerImage(string baseImage, string initialWorkingDirectory, bool? isInteractive = null) 
+            : base(baseImage, initialWorkingDirectory, isInteractive)
         {
         }
 

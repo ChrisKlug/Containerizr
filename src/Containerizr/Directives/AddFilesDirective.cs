@@ -34,8 +34,8 @@ public class AddFilesDirective : DockerDirective
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {
-        var fileContainer = addName ?? Guid.NewGuid().ToString();
-        var dirPath = Path.Combine(context.ContextDirectoryPath, fileContainer);
+        var filesDirectory = addName ?? Guid.NewGuid().ToString();
+        var dirPath = Path.Combine(context.ContextDirectoryPath, filesDirectory);
         Directory.CreateDirectory(dirPath);
 
         foreach (var source in sources)
@@ -47,7 +47,7 @@ public class AddFilesDirective : DockerDirective
 
         var filename = sources.Length == 1 ? Path.GetFileName(sources[0]) : "";
 
-        context.AddDirective($"COPY {context.RootRelativePath}/{fileContainer}/{filename} {target}");
+        context.AddDirective($"COPY {context.ContextRootRelativePath}/{filesDirectory}/{filename} {target}");
 
         return Task.CompletedTask;
     }

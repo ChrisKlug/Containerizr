@@ -6,21 +6,28 @@ public class DockerfileContext
 {
     private StringBuilder content;
     private readonly ContainerImage image;
+    private readonly string contextDirectoryPath;
+    private readonly string? subPath;
 
-    private DockerfileContext(ContainerImage image)
+    private DockerfileContext(ContainerImage image, string contextDirectoryPath)
     {
         this.image = image;
+        this.contextDirectoryPath = contextDirectoryPath;
         content = new StringBuilder($"FROM {image.BaseImage}\r\n\r\n");
     }
-    private DockerfileContext(ContainerImage image, string name)
+    private DockerfileContext(ContainerImage image, string contextDirectoryPath, string name)
     {
         this.image = image;
+        this.contextDirectoryPath = contextDirectoryPath;
+        this.subPath = $"_{name}";
         content = new StringBuilder($"FROM {image.BaseImage} AS {name}\r\n\r\n");
     }
 
     public async Task AddMultiStageImage(ContainerImage image, string fromName)
     {
-        var resp = await this.image.CreateMultiStageDockerContext(image, fromName);
+        var ctx = CloneForMultiStageBuildImage(image, fromName);
+
+        var resp = await this.image.CreateDockerContext(ctx);
 
         if (!resp.IsSuccess)
         {
@@ -35,20 +42,15 @@ public class DockerfileContext
         this.content.AppendLine(content);
     }
 
-    public static DockerfileContext Create(ContainerImage image) => new DockerfileContext(image);
-    public static DockerfileContext CreateForMultiStageImage(ContainerImage image, string name) => new DockerfileContext(image, name);
+    private DockerfileContext CloneForMultiStageBuildImage(ContainerImage image, string fromName)
+        => new DockerfileContext(image, contextDirectoryPath, fromName);
 
+    public static DockerfileContext Create(ContainerImage image, string contextDirectoryPath) 
+        => new DockerfileContext(image, contextDirectoryPath);
 
     public string GetContent() => content.ToString();
 
-    public string WorkingDirectory 
-    {
-        get => image.Items.GetWorkingDirectory();
-        set
-        {
-            image.Items.SetItem("BuiltIn.WorkingDirectory", value);
-        }
-    }
-    public string ContextDirectoryPath => image.Items.GetContextDirectory();
-    public string RootRelativePath => image.Items.GetItem<string>("BuiltIn.RootRelativeContextPath") ?? "";
+    public ContainerImage Image => image;
+    public string ContextRootRelativePath => subPath ?? ".";
+    public string ContextDirectoryPath => $"{contextDirectoryPath}{(subPath != null ? $"/{subPath}" : "")}";
 }

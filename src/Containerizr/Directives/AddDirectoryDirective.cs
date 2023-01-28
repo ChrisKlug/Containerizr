@@ -36,21 +36,21 @@ public class AddDirectoryDirective : DockerDirective
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {
-        string container;
+        string filesDirectory;
         if (addName != null)
         {
-            container = "ctx_" + addName;
+            filesDirectory = "ctx_" + addName;
         }
         else
         {
-            container = Guid.NewGuid().ToString();
+            filesDirectory = Guid.NewGuid().ToString();
         }
-        var dirPath = Path.Combine(context.ContextDirectoryPath, container);
+        var dirPath = Path.Combine(context.ContextDirectoryPath, filesDirectory);
         Directory.CreateDirectory(dirPath);
 
         CopyFilesRecursively(directory, dirPath);
 
-        context.AddDirective($"COPY {context.RootRelativePath}/{container} {target}");
+        context.AddDirective($"COPY {context.ContextRootRelativePath}/{filesDirectory} {target}");
 
         return Task.CompletedTask;
     }

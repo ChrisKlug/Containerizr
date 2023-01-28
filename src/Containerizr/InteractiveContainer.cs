@@ -7,19 +7,27 @@ public class InteractiveContainer : IDisposable
 {
     private readonly ContainerImage image;
     private readonly string containerName;
+    private readonly Func<(string WorkingDirectory, string Command), string> commandFomatter;
     private Process? interactiveContainer;
+    private ExecutionContext context;
     private bool isDisposed;
 
-    public InteractiveContainer(ContainerImage image, string containerName, bool enabled)
+    public InteractiveContainer(ContainerImage image, 
+                                string containerName, 
+                                string initialWorkingDirectory, 
+                                Func<(string WorkingDirectory, string Command), string> commandFomatter,
+                                bool enabled)
     {
         this.image = image;
         this.containerName = containerName;
+        this.commandFomatter = commandFomatter;
         this.IsEnabled = enabled;
+        this.context = ExecutionContext.Create(image, initialWorkingDirectory);
     }
 
     protected internal Task<CommandExecutionResponse> ExecuteCommand(string command)
     {
-        return ExecuteDockerCommand($"exec {containerName} {image.FormatCommand(image.Items.GetWorkingDirectory(), command)}");
+        return ExecuteDockerCommand($"exec {containerName} {commandFomatter((Context.WorkingDirectory, command))}");
     }
     protected internal async Task<CommandExecutionResponse> ExecuteDockerCommand(string command)
     {
@@ -76,6 +84,7 @@ public class InteractiveContainer : IDisposable
 
     public string Name => containerName;
     public bool IsEnabled { get; }
+    public ExecutionContext Context => context;
 
     #region IDisposable
     protected virtual void Dispose(bool disposing)

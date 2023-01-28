@@ -9,12 +9,7 @@ public static class ContainerImageExtensions
     public static async Task<bool> SetWorkingDirectory(this ContainerImage image, string dir)
     {
         var resp = await image.AddDirective(new SetWorkingDirDirective(dir));
-        if (resp != CommandExecutionResponse.NonInteractive && resp.HasError)
-        {
-            return false;
-        }
-        image.Items.SetItem("BuiltIn.WorkingDir", dir);
-        return true;
+        return resp == CommandExecutionResponse.NonInteractive || !resp.HasError;
     }
     public static Task SetEntryPoint(this ContainerImage image, string entrypoint)
         => image.AddDirective(new SetEntryPointDirective(entrypoint));

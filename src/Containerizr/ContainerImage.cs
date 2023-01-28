@@ -16,12 +16,11 @@ public abstract class ContainerImage : IDisposable
     private string containerName = $"containerizr_{DateTime.Now.ToString("HHmmss")}_{Count}";
     private bool isDisposed;
 
-    protected ContainerImage(string baseImage, string workingDir, bool? interactive)
+    protected ContainerImage(string baseImage, string initialWorkingDirectory, bool? interactive)
 	{   
         Items = new ContainerImageItems();
-        Items.SetItem("BuiltIn.WorkingDir", workingDir);
         BaseImage = baseImage;
-        InteractiveContainer = new InteractiveContainer(this, containerName, interactive ?? InteractiveDefault);
+        InteractiveContainer = new InteractiveContainer(this, containerName, initialWorkingDirectory, GetCommandFormatter(), interactive ?? InteractiveDefault);
         Count++;
     }
 
@@ -31,73 +30,52 @@ public abstract class ContainerImage : IDisposable
 
         await InteractiveContainer.Initialize();
 
-        return await directive.ExecuteInteractive(ExecutionContext.Create(this, Items.GetWorkingDirectory()));
+        return await directive.ExecuteInteractive(InteractiveContainer.Context);
     }
     
-    public async Task<DockerfileContentGenerationResponse> CreateDockerContext(string? tempDirectoryPath = null, bool doNotDelete = false)
+    public async Task<DockerfileContentGenerationResponse> CreateDockerContext(string? tempDirectoryPath = null)
     {
         var dir = Path.Combine(tempDirectoryPath ?? Path.Combine(Path.GetTempPath(), $"{containerName}_context"));
-        Directory.CreateDirectory(dir);
 
-        Items.SetItem("BuiltIn.RootContextDir", dir);
-        Items.SetItem("BuiltIn.ContextDir", dir);
-        Items.SetItem("BuiltIn.RootRelativeContextPath", "");
+        var ctx = DockerfileContext.Create(this, dir);
 
-        var ctx = DockerfileContext.Create(this);
-        string content;
-        try
+        var response = await CreateDockerContext(ctx);
+        if (!response.IsSuccess)
         {
-            foreach (var directive in directives)
+            if (tempDirectoryPath == null)
             {
-                await directive.GenerateDockerFileContent(ctx);
+                Directory.Delete(dir, true);
             }
-
-            content = ctx.GetContent();
-
-            File.WriteAllText(Path.Combine(dir, "dockerfile"), content);
-        }
-        catch (Exception ex)
-        {
-            return DockerfileContentGenerationResponse.Create(ex);
+            throw response.Exception!;
         }
 
-        if (!doNotDelete)
-            Directory.Delete(dir, true);
+        File.WriteAllText(Path.Combine(dir, "dockerfile"), response.Content);
 
-        return DockerfileContentGenerationResponse.Success(content);
+        return response;
     }
-    public async Task<DockerfileContentGenerationResponse> CreateMultiStageDockerContext(ContainerImage image, string imageName)
+    internal async Task<DockerfileContentGenerationResponse> CreateDockerContext(DockerfileContext context)
     {
-        var rootContextDir = Items.GetItem<string>("BuiltIn.RootContextDir")!;
-        var contentDir = $"_{imageName}";
-        var dir = Path.Combine(Path.Combine(rootContextDir, contentDir));
-        Directory.CreateDirectory(dir);
+        Directory.CreateDirectory(context.ContextDirectoryPath);
 
-        image.Items.SetItem("BuiltIn.RootContextDir", rootContextDir);
-        image.Items.SetItem("BuiltIn.ContextDir", dir);
-        image.Items.SetItem("BuiltIn.RootRelativeContextPath", contentDir);
-
-        var ctx = DockerfileContext.CreateForMultiStageImage(image, imageName);
         try
         {
-            foreach (var directive in image.directives)
+            foreach (var directive in context.Image.directives)
             {
-                await directive.GenerateDockerFileContent(ctx);
+                await directive.GenerateDockerFileContent(context);
             }
 
-            var content = ctx.GetContent();
+            var content = context.GetContent();
 
-            return DockerfileContentGenerationResponse.Success(content);
+            return DockerfileContentGenerationResponse.Success(content, context.ContextDirectoryPath);
         }
         catch (Exception ex)
         {
-            return DockerfileContentGenerationResponse.Create(ex);
+            return DockerfileContentGenerationResponse.Create(ex, context.ContextDirectoryPath);
         }
     }
     public async Task CreateImage(string name, string? tag = null, string? tempDirectoryPath = null)
     {
         var dir = Path.Combine(tempDirectoryPath ?? Path.GetTempPath(), $"{containerName}_context");
-        Directory.CreateDirectory(dir);
 
         var response = await CreateDockerContext(dir);
 
@@ -132,6 +110,8 @@ public abstract class ContainerImage : IDisposable
     }
 
     protected internal abstract string FormatCommand(string command, string currentDirectory);
+    private Func<(string WorkingDirectory, string Command), string> GetCommandFormatter()
+        => x => FormatCommand(x.WorkingDirectory, x.WorkingDirectory);
 
     public ContainerImageItems Items { get; private set; }
     public string BaseImage { get; }

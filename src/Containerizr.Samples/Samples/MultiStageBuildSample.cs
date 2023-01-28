@@ -10,7 +10,7 @@ internal class MultiStageBuildSample : ISample
 
         Console.WriteLine("Generating image");
 
-        var contextDir = Path.Combine(Path.GetTempPath(), "sample1");
+        var contextDir = Path.Combine(Path.GetTempPath(), "sample2");
         if (Directory.Exists(contextDir))
         {
             Directory.Delete(contextDir, true);
@@ -35,7 +35,7 @@ internal class MultiStageBuildSample : ISample
 
             await image.SetEntryPoint("dotnet DemoApi.dll");
 
-            var contextGenerationResult = await image.CreateDockerContext(contextDir, true);
+            var contextGenerationResult = await image.CreateDockerContext(contextDir);
 
             if (!contextGenerationResult.IsSuccess)
             {
@@ -48,8 +48,9 @@ internal class MultiStageBuildSample : ISample
 
             Console.Clear();
             Console.WriteLine("DOCKERFILE\r\n");
-            Console.Write(File.ReadAllText(Path.Combine(contextDir, "dockerfile")) + "\r\n\r\n");
-            Console.Write($"Context is temporarily available at: {contextDir}\r\n\r\n");
+            Console.WriteLine(File.ReadAllText(Path.Combine(contextDir, "dockerfile")) + "\r\n");
+            Console.WriteLine($"Temporary container name is: {image.InteractiveContainer.Name}");
+            Console.WriteLine($"Context is temporarily available at: {contextDir}\r\n");
             Console.Write("Generate image (Y/n): ");
             var key = Console.ReadKey();
 

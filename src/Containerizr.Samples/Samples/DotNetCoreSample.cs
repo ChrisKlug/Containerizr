@@ -28,7 +28,7 @@ internal class DotNetCoreSample : ISample
 
             await image.SetEntryPoint("dotnet run");
 
-            var contextGenerationResult = await image.CreateDockerContext(contextDir, true);
+            var contextGenerationResult = await image.CreateDockerContext(contextDir);
 
             if (!contextGenerationResult.IsSuccess)
             {
@@ -41,8 +41,9 @@ internal class DotNetCoreSample : ISample
 
             Console.Clear();
             Console.WriteLine("DOCKERFILE\r\n");
-            Console.Write(File.ReadAllText(Path.Combine(contextDir, "dockerfile")) + "\r\n\r\n");
-            Console.Write($"Context is temporarily available at: {contextDir}\r\n\r\n");
+            Console.WriteLine(File.ReadAllText(Path.Combine(contextDir, "dockerfile")) + "\r\n");
+            Console.WriteLine($"Temporary container name is: {image.InteractiveContainer.Name}");
+            Console.WriteLine($"Context is temporarily available at: {contextDir}\r\n");
             Console.Write("Generate image (Y/n): ");
             var key = Console.ReadKey();
 

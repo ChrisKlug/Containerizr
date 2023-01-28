@@ -25,7 +25,7 @@ do
 
     Console.Write($"\r\nSelect: ");
 
-    input = Console.ReadLine();
+    input = Console.ReadLine() ?? "";
 
     if (!string.IsNullOrWhiteSpace(input) && samples.ContainsKey(input))
     {
