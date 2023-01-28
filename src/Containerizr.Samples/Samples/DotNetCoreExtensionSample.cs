@@ -51,8 +51,13 @@ internal class DotNetCoreExtensionSample : ISample
                 Console.ReadKey();
             }
 
-            Directory.Delete(contextDir, true);
+            Console.Clear();
+            Console.Write("Deleting temporary container...");
         }
+
+        Console.WriteLine("Done!");
+        Console.WriteLine("Deleting temporary context...");
+        Directory.Delete(contextDir, true);
     }
 
     public string Name => "DotNet Core Extension Method";

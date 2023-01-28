@@ -29,7 +29,7 @@ do
 
     if (!string.IsNullOrWhiteSpace(input) && samples.ContainsKey(input))
     {
-        await samples[input].Execute(false);
+        await samples[input].Execute(true);
     }
 
     Console.Clear();
