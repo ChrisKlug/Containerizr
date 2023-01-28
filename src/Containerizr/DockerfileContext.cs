@@ -20,7 +20,7 @@ public class DockerfileContext
 
     public async Task AddMultiStageImage(ContainerImage image, string fromName)
     {
-        var resp = await this.image.GenerateMultiStageDockerContext(image, fromName);
+        var resp = await this.image.CreateMultiStageDockerContext(image, fromName);
 
         if (!resp.IsSuccess)
         {
@@ -43,12 +43,12 @@ public class DockerfileContext
 
     public string WorkingDirectory 
     {
-        get => image.State.GetWorkingDirectory();
+        get => image.Items.GetWorkingDirectory();
         set
         {
-            image.State.SetItem("BuiltIn.WorkingDirectory", value);
+            image.Items.SetItem("BuiltIn.WorkingDirectory", value);
         }
     }
-    public string ContextDirectoryPath => image.State.GetContextDirectory();
-    public string RootRelativePath => image.State.GetItem<string>("BuiltIn.RootRelativeContextPath") ?? "";
+    public string ContextDirectoryPath => image.Items.GetContextDirectory();
+    public string RootRelativePath => image.Items.GetItem<string>("BuiltIn.RootRelativeContextPath") ?? "";
 }

@@ -17,7 +17,7 @@ public class AddFilesDirective : DockerDirective
         this.addName = addName;
     }
 
-    public override async Task<DockerDirectiveResponse> ExecuteInteractive(ExecutionContext context)
+    public override async Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
     {
         if (sources.Any(x => !File.Exists(x)))
         {
@@ -26,10 +26,10 @@ public class AddFilesDirective : DockerDirective
 
         foreach (var source in sources)
         {
-            await ExecuteDockerCommand($"cp \"{source}\" {context.ContainerConfig.ContainerName}:{target}");
+            await context.Image.ExecuteDockerCommand($"cp \"{source}\" {context.Image.InteractiveContainerName}:{target}");
         }
 
-        return DockerDirectiveResponse.Create("", "");
+        return CommandExecutionResponse.Create("", "");
     }
 
     public override Task GenerateDockerFileContent(DockerfileContext context)

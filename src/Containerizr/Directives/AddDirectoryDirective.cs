@@ -22,16 +22,16 @@ public class AddDirectoryDirective : DockerDirective
         this.addName = addName;
     }
 
-    public override async Task<DockerDirectiveResponse> ExecuteInteractive(ExecutionContext context)
+    public override async Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
     {
         if (!Directory.Exists(directory))
         {
             throw new Exception("Directory does not exist");
         }
 
-        await ExecuteDockerCommand($"cp \"{directory}.\" {context.ContainerConfig.ContainerName}:{target}");
+        await context.Image.ExecuteDockerCommand($"cp \"{directory}.\" {context.Image.InteractiveContainerName}:{target}");
 
-        return DockerDirectiveResponse.Create("", "");
+        return CommandExecutionResponse.Create("", "");
     }
 
     public override Task GenerateDockerFileContent(DockerfileContext context)

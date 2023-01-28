@@ -13,8 +13,8 @@ public class SetEnvironmentVariableDirective : LinuxDockerDirective
         this.value = value;
     }
 
-    public override Task<DockerDirectiveResponse> ExecuteInteractive(ExecutionContext context)
-        => ExecuteCommandInContainer(context, $"echo \"export {name}='{value}'\" >> /etc/profile && source /etc/profile");
+    public override Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
+        => context.Image.ExecuteCommand($"echo \"export {name}='{value}'\" >> /etc/profile && source /etc/profile");
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {

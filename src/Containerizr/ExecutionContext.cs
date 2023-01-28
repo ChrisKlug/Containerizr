@@ -2,15 +2,15 @@
 
 public class ExecutionContext
 {
-    protected ExecutionContext(ContainerImageConfig config, string workingDirectory)
+    protected ExecutionContext(ContainerImage image, string workingDirectory)
     {
-        ContainerConfig = config;
+        Image = image;
         WorkingDirectory = workingDirectory;
     }
 
-    public static ExecutionContext Create(ContainerImageConfig config, string workingDirectory)
-        => new ExecutionContext(config, workingDirectory);
+    public static ExecutionContext Create(ContainerImage image, string workingDirectory)
+        => new ExecutionContext(image, workingDirectory);
 
-    public ContainerImageConfig ContainerConfig { get; }
+    public ContainerImage Image { get; }
     public string WorkingDirectory { get; set; }
 }

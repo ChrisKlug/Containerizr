@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Containerizr.AspNet", "src\Containerizr.AspNet\Containerizr.AspNet.csproj", "{AFFAEFFE-BD9D-45F1-AFE3-9A8C60889A05}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Containerizr.Packages", "src\Containerizr.Packages\Containerizr.Packages.csproj", "{9349DA65-149A-48E7-8053-3FE7FAA3AF1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{AFFAEFFE-BD9D-45F1-AFE3-9A8C60889A05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFFAEFFE-BD9D-45F1-AFE3-9A8C60889A05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFFAEFFE-BD9D-45F1-AFE3-9A8C60889A05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9349DA65-149A-48E7-8053-3FE7FAA3AF1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9349DA65-149A-48E7-8053-3FE7FAA3AF1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9349DA65-149A-48E7-8053-3FE7FAA3AF1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9349DA65-149A-48E7-8053-3FE7FAA3AF1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -19,11 +19,11 @@ public class CopyFromImageDirective : DockerDirective
         this.fromName = fromName;
     }
 
-    public override async Task<DockerDirectiveResponse> ExecuteInteractive(ExecutionContext context)
+    public override async Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
-        var response = await ExecuteDockerCommand($"cp {image.ContainerName}:{source} {tempDir}");
+        var response = await context.Image.ExecuteDockerCommand($"cp {image.InteractiveContainerName}:{source} {tempDir}");
         if (response.HasError)
         {
             return response;
@@ -31,18 +31,18 @@ public class CopyFromImageDirective : DockerDirective
 
         var target = Path.GetFileName(source);
         var suffix = target.IndexOf(".") > 0 ? "" : "/.";
-        response = await ExecuteDockerCommand($"cp {tempDir}/{target}{suffix} {context.ContainerConfig.ContainerName}:{this.target} ");
+        response = await context.Image.ExecuteDockerCommand($"cp {tempDir}/{target}{suffix} {context.Image.InteractiveContainerName}:{this.target} ");
         if (response.HasError)
         {
             return response;
         }
         Directory.Delete(tempDir, true);
-        return DockerDirectiveResponse.Empty;
+        return CommandExecutionResponse.Empty;
     }
 
     public override async Task GenerateDockerFileContent(DockerfileContext context)
     {
-        var fromName = this.fromName ?? image.ContainerName;
+        var fromName = this.fromName ?? image.InteractiveContainerName;
         await context.AddMultiStageImage(image, fromName);
         context.AddDirective($"COPY --from={fromName} {source} {target}");
     }

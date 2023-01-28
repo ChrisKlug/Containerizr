@@ -9,8 +9,8 @@ public class SetEntryPointDirective : DockerDirective
         this.entrypoint = entrypoint;
     }
 
-    public override Task<DockerDirectiveResponse> ExecuteInteractive(ExecutionContext context)
-        => Task.FromResult(DockerDirectiveResponse.Empty);
+    public override Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
+        => Task.FromResult(CommandExecutionResponse.Empty);
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {

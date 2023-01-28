@@ -1,6 +1,6 @@
 ﻿namespace Containerizr;
 
-public class ContainerImageState
+public class ContainerImageItems
 {
     private Dictionary<string, object> items = new Dictionary<string, object>();
 

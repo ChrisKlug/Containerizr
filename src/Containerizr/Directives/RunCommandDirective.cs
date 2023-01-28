@@ -2,34 +2,19 @@
 
 public class RunCommandDirective : DockerDirective
 {
-    private readonly Func<CommandContext, string> commandCallback;
+    private readonly string command;
 
-    public RunCommandDirective(Func<CommandContext, string> commandCallback)
+    public RunCommandDirective(string command)
     {
-        this.commandCallback = commandCallback;
+        this.command = command;
     }
 
-    public override Task<DockerDirectiveResponse> ExecuteInteractive(ExecutionContext context)
-        => ExecuteDockerCommand($"exec {context.ContainerConfig.ContainerName} {commandCallback(CommandContext.Create(context))}");
+    public override Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
+        => context.Image.ExecuteCommand(command);
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {
-        context.AddDirective($"RUN {commandCallback(CommandContext.Create(context))}");
+        context.AddDirective($"RUN {this.command}");
         return Task.CompletedTask;
-    }
-
-    public class CommandContext
-    {
-        private CommandContext(string workingDirectory)
-        {
-            WorkingDirectory = workingDirectory;
-        }
-
-        public static CommandContext Create(ExecutionContext ctx)
-            => new CommandContext(ctx.WorkingDirectory);
-        public static CommandContext Create(DockerfileContext ctx)
-            => new CommandContext(ctx.WorkingDirectory);
-
-        public string WorkingDirectory { get; }
     }
 }

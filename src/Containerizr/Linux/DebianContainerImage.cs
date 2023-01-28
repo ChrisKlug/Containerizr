@@ -1,6 +1,6 @@
 ﻿namespace Containerizr.Linux;
 
-public class DebianContainerImage : ContainerImage
+public class DebianContainerImage : LinuxContainerImage
 {
     private const string DefaultWorkingDir = "/";
 
@@ -22,12 +22,13 @@ public class DebianContainerImage : ContainerImage
         { DotNetCoreImageVersions.AspNet_Runtime_7_0, "mcr.microsoft.com/dotnet/aspnet:7.0" }
     };
 
-    protected DebianContainerImage(ContainerImageConfig config, string workingDir) : base(config, workingDir) {}
+    protected DebianContainerImage(string baseImage, string workingDir, bool? isInteractive = null) 
+        : base(baseImage, workingDir, isInteractive) {}
 
     public static DebianContainerImage FromImage(string imageName, string workingDir = DefaultWorkingDir, bool? interactive = null, string? tag = null)
-        => new DebianContainerImage(new ContainerImageConfig($"{imageName}{(tag != null ? $":{tag}" : "")}", interactive), workingDir);
+        => new DebianContainerImage($"{imageName}{(tag != null ? $":{tag}" : "")}", workingDir, interactive);
     public static DebianContainerImage Create(UbuntuVersion version, string workingDir = DefaultWorkingDir, bool? interactive = null)
-        => new DebianContainerImage(new ContainerImageConfig($"ubuntu:{UbuntuVersionTag[version]}", interactive), workingDir);
+        => new DebianContainerImage($"ubuntu:{UbuntuVersionTag[version]}", workingDir, interactive);
     public static DebianContainerImage Create(DotNetCoreImageVersions version, string workingDir = DefaultWorkingDir, bool? interactive = null)
-        => new DebianContainerImage(new ContainerImageConfig(DotNetCoreImageNames[version], interactive), workingDir);
+        => new DebianContainerImage(DotNetCoreImageNames[version], workingDir, interactive);
 }

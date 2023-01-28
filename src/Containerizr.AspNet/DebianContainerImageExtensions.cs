@@ -4,7 +4,7 @@ namespace Containerizr.AspNet
 {
     public static class DebianContainerImageExtensions
     {
-        public static async Task AddAspNetAppToImage(this DebianContainerImage image, string pathToAppSource)
+        public static async Task AddAspNetAppToImage(this LinuxContainerImage image, string pathToAppSource)
         {
             await image.EnsureDirectoryExists("/app");
 
