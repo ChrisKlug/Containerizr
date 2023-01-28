@@ -29,7 +29,7 @@ public class AddDirectoryDirective : DockerDirective
             throw new Exception("Directory does not exist");
         }
 
-        await context.Image.ExecuteDockerCommand($"cp \"{directory}.\" {context.Image.InteractiveContainerName}:{target}");
+        await context.Image.InteractiveContainer.ExecuteDockerCommand($"cp \"{directory}.\" {context.Image.InteractiveContainer.Name}:{target}");
 
         return CommandExecutionResponse.Create("", "");
     }

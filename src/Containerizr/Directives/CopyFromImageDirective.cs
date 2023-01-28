@@ -23,7 +23,7 @@ public class CopyFromImageDirective : DockerDirective
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
-        var response = await context.Image.ExecuteDockerCommand($"cp {image.InteractiveContainerName}:{source} {tempDir}");
+        var response = await context.Image.InteractiveContainer.ExecuteDockerCommand($"cp {image.InteractiveContainer.Name}:{source} {tempDir}");
         if (response.HasError)
         {
             return response;
@@ -31,7 +31,7 @@ public class CopyFromImageDirective : DockerDirective
 
         var target = Path.GetFileName(source);
         var suffix = target.IndexOf(".") > 0 ? "" : "/.";
-        response = await context.Image.ExecuteDockerCommand($"cp {tempDir}/{target}{suffix} {context.Image.InteractiveContainerName}:{this.target} ");
+        response = await context.Image.InteractiveContainer.ExecuteDockerCommand($"cp {tempDir}/{target}{suffix} {context.Image.InteractiveContainer.Name}:{this.target} ");
         if (response.HasError)
         {
             return response;
@@ -42,7 +42,7 @@ public class CopyFromImageDirective : DockerDirective
 
     public override async Task GenerateDockerFileContent(DockerfileContext context)
     {
-        var fromName = this.fromName ?? image.InteractiveContainerName;
+        var fromName = this.fromName ?? image.InteractiveContainer.Name;
         await context.AddMultiStageImage(image, fromName);
         context.AddDirective($"COPY --from={fromName} {source} {target}");
     }

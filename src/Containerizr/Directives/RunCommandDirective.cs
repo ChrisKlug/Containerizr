@@ -10,7 +10,7 @@ public class RunCommandDirective : DockerDirective
     }
 
     public override Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
-        => context.Image.ExecuteCommand(command);
+        => context.Image.InteractiveContainer.ExecuteCommand(command);
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {

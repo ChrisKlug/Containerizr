@@ -7,7 +7,7 @@
         {
         }
 
-        protected override string FormatCommand(string command, string currentDirectory) 
+        protected internal override string FormatCommand(string command, string currentDirectory) 
             => $"bash -c \"cd {currentDirectory} && {command.Replace("\"", "\\\"")}\"";
     }
 }

@@ -12,7 +12,7 @@ public class EnsureDirectoryDirective : LinuxDockerDirective
     }
 
     public override Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
-        => context.Image.ExecuteCommand($"mkdir -p {path}");
+        => context.Image.InteractiveContainer.ExecuteCommand($"mkdir -p {path}");
 
     public override Task GenerateDockerFileContent(DockerfileContext context)
     {

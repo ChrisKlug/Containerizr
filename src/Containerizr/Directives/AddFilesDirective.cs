@@ -11,7 +11,7 @@ public class AddFilesDirective : DockerDirective
         this.sources = sources;
         this.target = target;
     }
-    public AddFilesDirective(string[] sources, string target, string addName)
+    public AddFilesDirective(string[] sources, string target, string? addName)
         : this(sources, target)
     {
         this.addName = addName;
@@ -26,7 +26,7 @@ public class AddFilesDirective : DockerDirective
 
         foreach (var source in sources)
         {
-            await context.Image.ExecuteDockerCommand($"cp \"{source}\" {context.Image.InteractiveContainerName}:{target}");
+            await context.Image.InteractiveContainer.ExecuteDockerCommand($"cp \"{source}\" {context.Image.InteractiveContainer.Name}:{target}");
         }
 
         return CommandExecutionResponse.Create("", "");

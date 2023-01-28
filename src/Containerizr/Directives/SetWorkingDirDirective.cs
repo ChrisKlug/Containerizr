@@ -11,7 +11,7 @@ public class SetWorkingDirDirective : DockerDirective
 
     public override async Task<CommandExecutionResponse> ExecuteInteractive(ExecutionContext context)
     {
-        var resp = await context.Image.ExecuteCommand($"cd {dir}");
+        var resp = await context.Image.InteractiveContainer.ExecuteCommand($"cd {dir}");
         if (!resp.HasError)
         {
             context.WorkingDirectory = dir;

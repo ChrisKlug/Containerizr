@@ -6,14 +6,14 @@ namespace Containerizr;
 
 public abstract class ContainerImage : IDisposable
 {
-    private static int Count = 0;
 #if DEBUG
     private const bool InteractiveDefault = true;
 #else
     private const bool InteractiveDefault = false;
 #endif
     private readonly List<DockerDirective> directives = new List<DockerDirective>();
-    private Process? interactiveContainer;
+    private static int Count = 0;
+    private string containerName = $"containerizr_{DateTime.Now.ToString("HHmmss")}_{Count}";
     private bool isDisposed;
 
     protected ContainerImage(string baseImage, string workingDir, bool? interactive)
@@ -21,26 +21,22 @@ public abstract class ContainerImage : IDisposable
         Items = new ContainerImageItems();
         Items.SetItem("BuiltIn.WorkingDir", workingDir);
         BaseImage = baseImage;
-        IsInteractive = interactive ?? InteractiveDefault;
+        InteractiveContainer = new InteractiveContainer(this, containerName, interactive ?? InteractiveDefault);
         Count++;
     }
 
     public async Task<CommandExecutionResponse> AddDirective(DockerDirective directive)
     {
         directives.Add(directive);
-        if (!IsInteractive)
-        {
-            return CommandExecutionResponse.NonInteractive;
-        }
 
-        await EnsureInteractiveContainerIsRunning();
+        await InteractiveContainer.Initialize();
 
         return await directive.ExecuteInteractive(ExecutionContext.Create(this, Items.GetWorkingDirectory()));
     }
     
     public async Task<DockerfileContentGenerationResponse> CreateDockerContext(string? tempDirectoryPath = null, bool doNotDelete = false)
     {
-        var dir = Path.Combine(tempDirectoryPath ?? Path.Combine(Path.GetTempPath(), $"{InteractiveContainerName}_context"));
+        var dir = Path.Combine(tempDirectoryPath ?? Path.Combine(Path.GetTempPath(), $"{containerName}_context"));
         Directory.CreateDirectory(dir);
 
         Items.SetItem("BuiltIn.RootContextDir", dir);
@@ -100,7 +96,7 @@ public abstract class ContainerImage : IDisposable
     }
     public async Task CreateImage(string name, string? tag = null, string? tempDirectoryPath = null)
     {
-        var dir = Path.Combine(tempDirectoryPath ?? Path.GetTempPath(), $"{InteractiveContainerName}_context");
+        var dir = Path.Combine(tempDirectoryPath ?? Path.GetTempPath(), $"{containerName}_context");
         Directory.CreateDirectory(dir);
 
         var response = await CreateDockerContext(dir);
@@ -135,65 +131,11 @@ public abstract class ContainerImage : IDisposable
         Directory.Delete(dir, true);
     }
 
-    protected internal Task<CommandExecutionResponse> ExecuteCommand(string command)
-    {
-        return ExecuteDockerCommand($"exec {InteractiveContainerName} {FormatCommand(Items.GetWorkingDirectory(), command)}");
-    }
-    protected internal async Task<CommandExecutionResponse> ExecuteDockerCommand(string command)
-    {
-        var si = new ProcessStartInfo("docker", command)
-        {
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-        var process = Process.Start(si)!;
-
-        await process.WaitForExitAsync();
-
-        return await CommandExecutionResponse.Create(process);
-    }
-    protected virtual Process SetUpInteractiveContainer()
-    {
-        var si = new ProcessStartInfo("docker", $"run -i --rm --name {InteractiveContainerName} {BaseImage}")
-        {
-            CreateNoWindow = true,
-        };
-        return Process.Start(si)!;
-    }
-    protected async Task EnsureInteractiveContainerIsRunning()
-    {
-        if (IsInteractive)
-        {
-            if (interactiveContainer == null)
-            {
-                interactiveContainer = SetUpInteractiveContainer();
-
-                var si = new ProcessStartInfo("docker", "container inspect -f '{{.State.Running}}' " + InteractiveContainerName)
-                {
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true
-                };
-
-                var isRunning = false;
-                Process process;
-                while (!isRunning)
-                {
-                    process = Process.Start(si)!;
-                    await process.WaitForExitAsync();
-                    var response = await process.StandardOutput.ReadLineAsync();
-                    isRunning = response == "'true'";
-                }
-            }
-        }
-    }
-
-    protected abstract string FormatCommand(string command, string currentDirectory);
+    protected internal abstract string FormatCommand(string command, string currentDirectory);
 
     public ContainerImageItems Items { get; private set; }
-    public string InteractiveContainerName { get; init; } = $"containerizr_{DateTime.Now.ToString("HHmmss")}_{Count}";
-    public bool IsInteractive { get; }
     public string BaseImage { get; }
+    public InteractiveContainer InteractiveContainer { get; private set; }
 
     #region IDisposable
     protected virtual void Dispose(bool disposing)
@@ -202,18 +144,11 @@ public abstract class ContainerImage : IDisposable
         {
             if (disposing)
             {
-                if (interactiveContainer != null)
+                if (InteractiveContainer != null)
                 {
-                    interactiveContainer.Close();
-
-                    var si = new ProcessStartInfo("docker", $"stop {InteractiveContainerName}")
-                    {
-                        CreateNoWindow = true,
-                    };
-                    Process.Start(si)!.WaitForExit();
+                    InteractiveContainer.Dispose();
                 }
             }
-
             isDisposed = true;
         }
     }

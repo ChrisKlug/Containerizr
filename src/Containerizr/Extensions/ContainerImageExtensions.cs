@@ -51,10 +51,6 @@ public static class ContainerImageExtensions
     }
     public static Task<CommandExecutionResponse> ExecuteDebugCommand(this ContainerImage image, string command)
     {
-        if (!image.IsInteractive)
-        {
-            return Task.FromResult(CommandExecutionResponse.NonInteractive);
-        }
-        return image.ExecuteCommand(command);
+        return image.InteractiveContainer.ExecuteCommand(command);
     }
 }
