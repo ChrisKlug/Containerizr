@@ -33,7 +33,7 @@ As you can see, it is fairly easy to read and understand what this code does. Ev
 
 ## Requirements
 
-The project has very few requirements. The only thing it really requires, except for your average C# development environment, is that you have Docker sinatlled on your machine. 
+The project has very few requirements. The only thing it really requires, except for your average C# development environment, is that you have Docker installed on your machine. 
 
 __Comment:__ All functionality has so far been tested on Docker Desktop using a Windows machine with WSL2.
 
